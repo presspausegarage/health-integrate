@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ISE Toolkit",
+  "productName": "Health Integrate",
   "version": "0.0.0",
-  "identifier": "com.ise-toolkit.app",
+  "identifier": "com.health-integrate.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "ISE Toolkit",
+        "title": "Health Integrate",
         "width": 1280,
         "height": 800,
         "minWidth": 960,
@@ -30,9 +30,9 @@
     "active": true,
     "targets": ["nsis"],
     "category": "Productivity",
-    "copyright": "Copyright (c) 2026 ISE Toolkit contributors",
-    "shortDescription": "Radiology informatics toolkit: PS360 template mapper, HL7 viewer, utilities.",
-    "longDescription": "A lightweight desktop application combining PS360 template mapping, HL7 message viewing and de-identification, string generation, tool launching, and an integrated terminal.",
+    "copyright": "Copyright (c) 2026 Health Integrate contributors",
+    "shortDescription": "Radiology informatics toolkit: template mapper, HL7 viewer, utilities.",
+    "longDescription": "A lightweight desktop application combining dictation template mapping, HL7 message viewing and de-identification, string generation, tool launching, and an integrated terminal.",
     "icon": [
       "icons/icon.ico"
     ],

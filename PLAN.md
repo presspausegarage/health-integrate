@@ -1,4 +1,4 @@
-# ISE Toolkit — Plan
+# Health Integrate — Plan
 
 A single lightweight desktop application combining five workflows:
 
@@ -21,7 +21,7 @@ All five workflows live inside the same Tauri app. They share a sidebar, setting
 ## Monorepo layout
 
 ```
-ise-toolkit/
+health-integrate/
   packages/
     core/                 Pure TS: PS360 parsers, normalizer, smoke-tester (no UI, no Tauri deps)
     phi-masker/           PHI detection + fake-identity substitution

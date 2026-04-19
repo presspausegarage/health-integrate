@@ -6,7 +6,7 @@ import {
   type AutoText,
   type DataValueConfig,
   type PortalAutoTextExport,
-} from "@ise-toolkit/core";
+} from "@health-integrate/core";
 import { pickXmlFile, pickXmlFiles } from "../shared/fs.js";
 
 export interface LoadedDataValue {

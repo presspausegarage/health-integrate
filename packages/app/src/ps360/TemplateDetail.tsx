@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AutoText, InnerField } from "@ise-toolkit/core";
+import type { AutoText, InnerField } from "@health-integrate/core";
 import { Editor } from "../shared/monaco.js";
 import { findAutoText, usePS360 } from "./state.js";
 

@@ -4,7 +4,7 @@ import type {
   FieldMapping,
   MappingDomain,
   ValueMappingItem,
-} from "@ise-toolkit/core";
+} from "@health-integrate/core";
 
 interface DomainRow {
   domain: MappingDomain;

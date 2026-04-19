@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { AutoText } from "@ise-toolkit/core";
+import type { AutoText } from "@health-integrate/core";
 import { usePS360 } from "./state.js";
 
 interface TemplateRow {

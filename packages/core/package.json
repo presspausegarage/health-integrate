@@ -1,5 +1,5 @@
 {
-  "name": "@ise-toolkit/core",
+  "name": "@health-integrate/core",
   "version": "0.0.0",
   "private": true,
   "description": "Pure TypeScript library: PS360 template parsing, DataValue parsing, normalization, smoke-testing. No UI, no Tauri dependencies.",

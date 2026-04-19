@@ -1,8 +1,8 @@
 {
-  "name": "@ise-toolkit/app",
+  "name": "@health-integrate/app",
   "version": "0.0.0",
   "private": true,
-  "description": "ISE Toolkit desktop application frontend (Vite + React + Monaco).",
+  "description": "Health Integrate desktop application frontend (Vite + React + Monaco).",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -13,7 +13,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@ise-toolkit/core": "*",
+    "@health-integrate/core": "*",
     "@monaco-editor/react": "^4.6.0",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-dialog": "^2.7.0",

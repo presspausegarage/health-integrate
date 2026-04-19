@@ -12,7 +12,7 @@ export function Sidebar({ active, onSelect }: Props) {
   return (
     <aside className="sidebar">
       <header className="sidebar-header">
-        <span className="sidebar-title">ISE Toolkit</span>
+        <span className="sidebar-title">Health Integrate</span>
         <span className="sidebar-version">v0.0.0</span>
       </header>
       <nav className="sidebar-nav">

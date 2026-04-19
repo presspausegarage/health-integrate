@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    ise_toolkit_shell_lib::run();
+    health_integrate_shell_lib::run();
 }

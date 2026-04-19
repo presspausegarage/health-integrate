@@ -64,13 +64,13 @@ These will be added as their respective phases land. Attribution is recorded her
 ### fast-xml-parser
 - Source: https://github.com/NaturalIntelligence/fast-xml-parser
 - License: MIT
-- Usage: XML parsing in `@ise-toolkit/core`.
+- Usage: XML parsing in `@health-integrate/core`.
 - Status: integrated.
 
 ### fast-check
 - Source: https://github.com/dubzzz/fast-check
 - License: MIT
-- Usage: Property-based testing in `@ise-toolkit/core`.
+- Usage: Property-based testing in `@health-integrate/core`.
 - Status: integrated.
 
 ### Vitest
