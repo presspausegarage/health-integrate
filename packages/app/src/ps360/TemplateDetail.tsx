@@ -58,8 +58,8 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
 
   const diagnostics = useMemo<LintDiagnostic[]>(() => {
     if (!dataValue) return [];
-    return lintTemplate(currentText, dataValue.config);
-  }, [currentText, dataValue]);
+    return lintTemplate(currentText, dataValue.config, { fields });
+  }, [currentText, dataValue, fields]);
 
   // Apply diagnostics as Monaco markers whenever they change.
   useEffect(() => {
