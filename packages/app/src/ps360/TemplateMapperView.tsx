@@ -1,19 +1,43 @@
-import { PlaceholderView } from "../shared/PlaceholderView.js";
+import { DataValuePanel } from "./DataValuePanel.js";
+import { TemplateList } from "./TemplateList.js";
+import { TemplateDetail } from "./TemplateDetail.js";
+import { PS360Provider, usePS360 } from "./state.js";
+import "./ps360.css";
 
 export function TemplateMapperView() {
   return (
-    <PlaceholderView
-      title="PS360 Template Mapper"
-      description="Autocomplete, lint, preview, bulk-edit, and smoke-test PowerScribe 360 PortalAutoTextExport files against a user-supplied integration configuration."
-      phase="Phases 3–4"
-      bullets={[
-        "Load DataValue.xml via drag-drop or settings",
-        "Load template XML, parse via @ise-toolkit/core",
-        "Monaco editor with diagnostics, hover, completion",
-        "Preview pane with inline editable fields",
-        "Normalize + diff export (save-as only, never overwrite)",
-        "Smoke-test all workflow templates",
-      ]}
-    />
+    <PS360Provider>
+      <PS360Layout />
+    </PS360Provider>
+  );
+}
+
+function PS360Layout() {
+  const { error, clearError } = usePS360();
+  return (
+    <div className="ps360-view">
+      {error !== null && (
+        <div className="ps360-error" role="alert">
+          <span className="ps360-error-text">{error}</span>
+          <button
+            type="button"
+            className="ps360-error-close"
+            onClick={clearError}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <div className="ps360-grid">
+        <aside className="ps360-col ps360-col--left">
+          <DataValuePanel />
+          <TemplateList />
+        </aside>
+        <section className="ps360-col ps360-col--right">
+          <TemplateDetail />
+        </section>
+      </div>
+    </div>
   );
 }

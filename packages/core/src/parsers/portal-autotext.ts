@@ -24,6 +24,19 @@ const INNER_XML_MARKER = "{\\xml}";
  * We split at the marker, keep the RTF portion raw, and decode-and-parse the
  * inner XML into a typed structure.
  */
+// PS360 template files embed heavily-escaped inner XML inside each
+// `<ContentRTF>`, so entity counts routinely exceed fast-xml-parser's
+// default anti-bomb limit of 1000. These are user-supplied files from
+// their own PS360 system (trusted input, no network origin), so raising
+// the limit is safe. We keep per-entity size caps modest.
+const RELAXED_ENTITY_CONFIG = {
+  enabled: true,
+  maxTotalExpansions: Infinity,
+  maxEntitySize: 1_000_000,
+  maxExpansionDepth: 100,
+  maxExpandedLength: 100_000_000,
+};
+
 export function parsePortalAutoText(xml: string): PortalAutoTextExport {
   const parser = new XMLParser({
     ignoreAttributes: false,
@@ -32,7 +45,7 @@ export function parsePortalAutoText(xml: string): PortalAutoTextExport {
     parseAttributeValue: false,
     trimValues: false,
     preserveOrder: false,
-    processEntities: true,
+    processEntities: RELAXED_ENTITY_CONFIG,
     htmlEntities: false,
     cdataPropName: "#cdata",
     textNodeName: "#text",
@@ -127,7 +140,7 @@ function parseInnerXml(innerXml: string, autoTextIndex: number): InnerAutoTextXm
     parseTagValue: false,
     parseAttributeValue: false,
     trimValues: false,
-    processEntities: true,
+    processEntities: RELAXED_ENTITY_CONFIG,
     textNodeName: "#text",
   });
 

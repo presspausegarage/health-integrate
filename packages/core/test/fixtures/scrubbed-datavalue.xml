@@ -1,0 +1,163 @@
+<DomainObject Type="MRS.Aspen.Business.Integration.Base.IntegrationConfiguration, Placeholder.Assembly, Version=X.Y.Z.W, Culture=neutral, PublicKeyToken=null" DatabaseID="00000000-0000-0000-0000-000000000000">
+  <Properties>
+    <Type Name="IntegrationConfiguration.Type" Type="MRS.Aspen.Business.Integration.Base.IntegrationType, Placeholder.Assembly, Version=X.Y.Z.W, Culture=neutral, PublicKeyToken=null">
+      <IntegrationType>VoiceRecognitionDictation</IntegrationType>
+    </Type>
+    <Name Name="IntegrationConfiguration.Name" Type="System.String">Test Config</Name>
+    <InternalName Name="IntegrationConfiguration.InternalName" Type="System.String">Test-0</InternalName>
+  </Properties>
+  <Lists>
+    <List Name="PatientMappings">
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.IntegrationMapping, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <DomainObject Name="IntegrationMapping.External" Type="MRS.Aspen.Business.Integration.Base.IntegrationField, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+            <Properties>
+              <Type Name="IntegrationField.Type" Type="MRS.Aspen.Business.Integration.Base.FieldIdentifier, Placeholder.Assembly">
+                <FieldIdentifier>PatientID</FieldIdentifier>
+              </Type>
+              <Name Name="IntegrationField.Name" Type="System.String">Patient MRN</Name>
+            </Properties>
+            <Lists />
+          </DomainObject>
+          <DomainObject Name="IntegrationMapping.Internal" Type="MRS.Aspen.Business.Integration.Base.IntegrationField, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+            <Properties>
+              <Type Name="IntegrationField.Type" Type="MRS.Aspen.Business.Integration.Base.FieldIdentifier, Placeholder.Assembly">
+                <FieldIdentifier>External</FieldIdentifier>
+              </Type>
+              <Name Name="IntegrationField.Name" Type="System.String">Not used for mapping</Name>
+            </Properties>
+            <Lists />
+          </DomainObject>
+        </Properties>
+        <Lists />
+      </DomainObject>
+    </List>
+    <List Name="ProcedureMappings">
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.IntegrationMapping, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <DomainObject Name="IntegrationMapping.External" Type="MRS.Aspen.Business.Integration.Base.IntegrationField, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+            <Properties>
+              <Type Name="IntegrationField.Type" Type="MRS.Aspen.Business.Integration.Base.FieldIdentifier, Placeholder.Assembly">
+                <FieldIdentifier>Accession</FieldIdentifier>
+              </Type>
+              <Name Name="IntegrationField.Name" Type="System.String">Accession #</Name>
+            </Properties>
+            <Lists />
+          </DomainObject>
+          <DomainObject Name="IntegrationMapping.Internal" Type="MRS.Aspen.Business.Integration.Base.IntegrationField, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+            <Properties>
+              <Type Name="IntegrationField.Type" Type="MRS.Aspen.Business.Integration.Base.FieldIdentifier, Placeholder.Assembly">
+                <FieldIdentifier>Accession</FieldIdentifier>
+              </Type>
+              <Name Name="IntegrationField.Name" Type="System.String">Accession</Name>
+            </Properties>
+            <Lists />
+          </DomainObject>
+        </Properties>
+        <Lists />
+      </DomainObject>
+    </List>
+    <List Name="SecondaryProcedureMappings" />
+    <List Name="SiteMappingList" />
+    <List Name="RecommendationMappingList">
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">10000000-0000-0000-0000-000000000001</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Additional Views</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Additional Views</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String" />
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Additional Views</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">10000000-0000-0000-0000-000000000002</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Aspiration</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Aspiration</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String" />
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Aspiration</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">10000000-0000-0000-0000-000000000003</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Follow-up in 6 months</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Follow-up in 6 months</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String" />
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Follow-up in 6 months</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+    </List>
+    <List Name="AssessmentMappingList">
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">20000000-0000-0000-0000-000000000001</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">BI-RADS 0</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">BI-RADS 0</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">0</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">BI-RADS 0</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">20000000-0000-0000-0000-000000000002</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">BI-RADS 1</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">BI-RADS 1</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">1</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">BI-RADS 1</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">20000000-0000-0000-0000-000000000003</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">BI-RADS 2</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">BI-RADS 2</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">2</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">BI-RADS 2</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+    </List>
+    <List Name="LateralityMappingList">
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">30000000-0000-0000-0000-000000000001</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Left</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Left</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">L</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Left</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">30000000-0000-0000-0000-000000000002</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Right</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Right</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">R</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Right</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+      <DomainObject Type="MRS.Aspen.Business.Integration.Base.ValueMappingItem, Placeholder.Assembly" DatabaseID="00000000-0000-0000-0000-000000000000">
+        <Properties>
+          <InternalGUID Name="ValueMappingItem.InternalGUID" Type="System.Guid">30000000-0000-0000-0000-000000000003</InternalGUID>
+          <DisplayValue Name="ValueMappingItem.DisplayValue" Type="System.String">Bilateral</DisplayValue>
+          <DefaultValue Name="ValueMappingItem.DefaultValue" Type="System.String">Bilateral</DefaultValue>
+          <Code Name="ValueMappingItem.Code" Type="System.String">B</Code>
+          <ExternalValue Name="ValueMappingItem.ExternalValue" Type="System.String">Bilateral</ExternalValue>
+        </Properties>
+        <Lists />
+      </DomainObject>
+    </List>
+    <List Name="TissueDensityMappingList" />
+    <List Name="PathologyStatusList" />
+    <List Name="PathologyComplicationsList" />
+    <List Name="ReportHeadersMappingList" />
+  </Lists>
+</DomainObject>

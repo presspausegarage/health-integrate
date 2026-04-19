@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "./shared/monaco.js";
 import { App } from "./App.js";
 import "./styles/app.css";
 
