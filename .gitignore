@@ -9,8 +9,15 @@ out/
 Thumbs.db
 
 # Tauri
-packages/shell/target/
-packages/shell/gen/
+packages/app/src-tauri/target/
+packages/app/src-tauri/gen/
+packages/app/src-tauri/icons/*.ico
+packages/app/src-tauri/icons/*.icns
+packages/app/src-tauri/icons/*.png
+!packages/app/src-tauri/icons/README.md
+
+# Vite / build outputs
+packages/app/dist/
 
 # IDE
 .vscode/

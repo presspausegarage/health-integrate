@@ -17,7 +17,31 @@ These will be added as their respective phases land. Attribution is recorded her
 - Source: https://github.com/microsoft/monaco-editor
 - License: MIT
 - Usage: Code editor powering PS360, HL7, and String Generator views.
-- Status: not yet integrated (Phase 2).
+- Status: integrated as dependency (UI integration lands in Phase 3).
+
+### @monaco-editor/react
+- Source: https://github.com/suren-atoyan/monaco-react
+- License: MIT
+- Usage: React wrapper for Monaco Editor.
+- Status: integrated as dependency.
+
+### React and React DOM
+- Source: https://github.com/facebook/react
+- License: MIT
+- Usage: Frontend UI framework.
+- Status: integrated.
+
+### Vite
+- Source: https://github.com/vitejs/vite
+- License: MIT
+- Usage: Frontend build tool and dev server.
+- Status: integrated.
+
+### @vitejs/plugin-react
+- Source: https://github.com/vitejs/vite-plugin-react
+- License: MIT
+- Usage: Vite integration for React Fast Refresh.
+- Status: integrated.
 
 ### xterm.js
 - Source: https://github.com/xtermjs/xterm.js
@@ -28,8 +52,14 @@ These will be added as their respective phases land. Attribution is recorded her
 ### Tauri
 - Source: https://github.com/tauri-apps/tauri
 - License: MIT / Apache-2.0
-- Usage: Desktop application shell (Phase 2).
-- Status: not yet integrated.
+- Usage: Desktop application shell, bundler, NSIS installer generation.
+- Status: integrated (Phase 2 scaffold).
+
+### Tauri plugins (shell, dialog, clipboard-manager, fs)
+- Source: https://github.com/tauri-apps/plugins-workspace
+- License: MIT / Apache-2.0
+- Usage: Native capabilities exposed to the frontend (tool launching, file dialogs, clipboard, file I/O).
+- Status: integrated.
 
 ### fast-xml-parser
 - Source: https://github.com/NaturalIntelligence/fast-xml-parser

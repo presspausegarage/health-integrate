@@ -14,6 +14,33 @@ All five workflows live in a single per-user Windows installer — no admin righ
 
 Early development. See [PLAN.md](PLAN.md) for the architecture and phase plan.
 
+## Development prerequisites
+
+- **Node.js** 20+ (latest LTS recommended)
+- **Rust** via [rustup](https://rustup.rs) — required to build and run the Tauri shell.
+  - On Windows, `rustup-init.exe` handles the install and sets up `cargo` / `rustc` on the `PATH`.
+  - Tauri additionally requires [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) on Windows (`Desktop development with C++` workload).
+- **WebView2** is pre-installed on Windows 10 21H2+ and Windows 11. Older Windows 10 builds need the [WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
+
+## Development commands
+
+```bash
+# Install dependencies
+npm install
+
+# Run the core library tests (no Rust required)
+npm test --workspace=@ise-toolkit/core
+
+# Typecheck all workspaces
+npm run typecheck
+
+# Launch the Tauri dev app (requires Rust)
+npm run dev
+
+# Produce a release build + NSIS installer (requires Rust)
+npm run dist
+```
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

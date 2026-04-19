@@ -25,7 +25,7 @@ ise-toolkit/
   packages/
     core/                 Pure TS: PS360 parsers, normalizer, smoke-tester (no UI, no Tauri deps)
     phi-masker/           PHI detection + fake-identity substitution
-    app/                  Vite + TypeScript frontend (Monaco-based)
+    app/                  Vite + TypeScript frontend (Monaco-based) + Tauri shell
       src/
         ps360/              Template mapper views
         hl7/                Paste-and-observe views
@@ -33,7 +33,12 @@ ise-toolkit/
         tools/              External tool launcher dashboard
         terminal/           xterm.js integrated terminal
         shared/             Sidebar, settings, DataValue loader, theming
-    shell/                Tauri Rust backend: file I/O, clipboard, pty bridge, process launch
+      src-tauri/          Tauri Rust backend: file I/O, clipboard, pty bridge, process launch
+        src/                Rust source (main.rs, lib.rs, module-per-capability)
+        capabilities/       Per-view IPC scoping (Phase 11d)
+        icons/              Bundle icons (generated, not committed)
+        Cargo.toml
+        tauri.conf.json
   resources/
     fake-identities.json  50-100 themed fake name pairs
     api-fields.xml        Canned PS360 API fields (user to supply)
@@ -218,6 +223,74 @@ Embedded terminal window for CLI installers, sendcommand/sre tools, WSL sessions
 - **Copy/paste**: standard terminal semantics. Selection-to-clipboard toggle in settings.
 
 **Effort**: ~1–2 weeks. The biggest unknown is pty lifecycle edge cases on Windows (child-process cleanup, ConPTY vs. WinPTY).
+
+---
+
+## Phase 11 — Security Hardening
+
+Layered protections for local app data and sensitive fields. These are Tauri/Rust-shell concerns, not language-choice concerns — TypeScript in a WebView is already memory-safe at the V8 level, and our threat model is about data at rest and correctness, not buffer overflows. Phase 11 delivers concrete wins the user sees.
+
+### 11a — DPAPI-encrypted app-data storage
+
+All persistent app state is encrypted at rest using Windows Data Protection API (`CryptProtectData`), tied to the user's Windows login. Transparent — no password prompt. Only that user on that machine can decrypt.
+
+- **What gets encrypted**: app settings, String Generator templates and saved presets, Tool Launcher entries, cached DataValue path and content hash, session state.
+- **What does not get encrypted**: nothing that was never persisted in the first place (HL7 messages, `secret`-typed String Generator field values, terminal history — all in-memory only).
+- **Implementation**: ~50 lines of Rust in the Tauri shell calling `windows-rs` DPAPI bindings. Frontend sees a typed `secureStore` API indistinguishable from localStorage in usage; the Rust side enforces encryption.
+- **Key rotation / migration**: DPAPI handles this transparently via Windows. We version the stored-blob schema for our own migrations.
+
+### 11b — Windows Credential Manager for true secrets
+
+If a user explicitly wants to persist a `secret`-typed String Generator value (install credentials reused across runs, API tokens, etc.), route it to **Windows Credential Manager** rather than our encrypted blob store. Users can see and revoke via Windows' own UI — the right trust boundary for real secrets.
+
+- Opt-in per field. Default: secrets are session-only, discarded on app close.
+- UI: "Save to Windows Credential Manager?" prompt when the user first attempts to save a secret field.
+
+### 11c — DataValue tamper detection
+
+Store a hash of the loaded DataValue.xml alongside its path. On each session load, recompute and compare. If changed:
+
+- Show a warning banner: "DataValue file changed since last session. [Show diff] [Continue] [Reload from original]".
+- Require explicit user acknowledgment before any normalize/smoke-test operations run against the new content.
+
+Catches accidental overwrites or deliberate swaps without being annoying when the user legitimately updated their config.
+
+### 11d — Tauri capability scoping
+
+Tauri 2's capability system lets us declare precisely which Rust commands the frontend can invoke, scoped per window/view. Lock down:
+
+- PS360 views: can call template file I/O, normalizer, smoke-tester. Cannot call terminal spawn, tool launcher shell.open, or network.
+- HL7 views: can call clipboard read and PHI masker. Cannot call file write, terminal, or network.
+- Terminal view: can spawn pty. Cannot call PHI masker, file read outside user's own home dir.
+- Tool Launcher: can call `shell.open` against the user-maintained allowlist only. Cannot open arbitrary paths.
+- String Generator: no shell, no file I/O, no network. Pure computation + clipboard.
+
+Enforced at the IPC layer — more robust than application-level guards.
+
+### 11e — Encrypted export bundles
+
+When users export template configs, tool-launcher entries, or String Generator templates for sharing with a colleague, the bundle is encrypted with a user-chosen password (AES-GCM via the `aes-gcm` Rust crate). Decryption is explicit on import. Keeps sensitive-ish configs off plain filesystem when moving between machines.
+
+- Bundle format: single `.iseb` file (magic bytes + version + nonce + ciphertext + HMAC).
+- Import flow: prompts for password, validates HMAC before decrypting, shows a summary of what the bundle contains before the user confirms.
+
+### 11f — In-memory-only invariants (enforcement)
+
+Listed elsewhere in the plan but enforced concretely in Phase 11 by lint/CI rule:
+
+- **HL7 paste area content** must never be passed to any Rust command that writes to disk. Enforced by a grep-based CI check over `app/src/hl7/**` — if a call to `writeTextFile` appears in HL7 code, CI fails.
+- **`secret`-typed field values** have a dedicated TypeScript branded type `SecretValue` that lacks a `toJSON` method and throws if stringified. Makes accidental persistence a compile error.
+
+### 11g — Code signing (reference only)
+
+Already covered in "License + distribution": SignPath Foundation EV cert, applied for in parallel with Phase 1. The signing step is the most visible security feature for end users (no SmartScreen warning). Listed here so the full security story lives in one place.
+
+### 11h — Defensive cross-workflow invariants (reference only)
+
+HL7 data never flows into terminal, string-gen, or tool-launcher. Already covered in "Trust boundaries for Utilities" cross-cutting concern. Enforced in Phase 11 by:
+
+- No cross-workflow "send to X" actions in any HL7 view component.
+- The HL7 copy prompt (original vs. de-identified) is the only path out of the HL7 view.
 
 ---
 

@@ -10,7 +10,10 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "tauri": "npm run tauri --workspace=@ise-toolkit/app --",
+    "dev": "npm run tauri -- dev",
+    "dist": "npm run tauri -- build"
   },
   "engines": {
     "node": ">=20"
