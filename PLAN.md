@@ -1,5 +1,24 @@
 # Health Integrate — Plan
 
+## Current status (snapshot)
+
+**Repo**: github.com/presspausegarage/health-integrate — public, MIT, Tauri app running locally on Windows.
+
+**Done:**
+- Phase 1: core library (parsers, serializer, normalizer scaffolding, round-trip tests — 50/50 passing).
+- Phase 2: Tauri 2 shell + Vite/React frontend scaffold, per-user NSIS installer configured, Monaco integrated.
+- Phase 3a: PS360 Template Mapper file loading, App Configuration browser with expandable sections and inline editable mapping values, template list with search, editor + picklist panel with tab strip, click-to-pick bracket decoration, editable subheader name, Monaco-marker lint integration with Fix / Fix-all.
+
+**Partial (tabled for next session):**
+- **Template Mapper lint ruleset**. The core lint framework is in place with rules for `header/case`, `choice/case`, `choice/unknown`, and `statement/recommendation-{case,unknown}`. The Recommendation-domain compound grammar handles trailing laterality (Left/Right/Bilateral) and timeframe (`in X months`, `in 1-2 years`, `at age N`, abbreviated forms). The ruleset still needs work against real-world templates — edge cases, additional domains, and false-positive tuning. See [docs/HANDOFF.md](docs/HANDOFF.md) for details.
+
+**Not started:**
+- Phases 3b–4: inline-edit pending-diffs model, diff export / save-as normalized file, bulk-normalize-workspace, smoke-test command.
+- Phases 5–7: PHI masker, HL7 viewer, API fields integration.
+- Phases 8–11: String Generator, Tool Launcher, Integrated Terminal, Security Hardening (DPAPI storage, code signing, etc.).
+
+---
+
 A single lightweight desktop application combining five workflows:
 
 - **PS360 Template Mapper** — autocomplete, lint, preview, bulk-edit, smoke-test PS360 `PortalAutoTextExport` XML files against a user-supplied integration configuration file.
