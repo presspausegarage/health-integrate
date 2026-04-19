@@ -905,6 +905,31 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.td-subheader-input {
+  flex: 1;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 3px 6px;
+  margin: -3px -6px;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.td-subheader-input:hover {
+  border-color: var(--border-2);
+}
+.td-subheader-input:focus {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+.td-subheader-input--dirty {
+  color: var(--amber);
+  border-color: rgba(245, 166, 35, 0.3);
+}
 .td-field-detail-type {
   color: var(--blue);
   font-family: var(--font-mono);

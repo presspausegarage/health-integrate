@@ -323,6 +323,14 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
     [],
   );
 
+  const renameSubheader = useCallback(
+    (oldName: string, newName: string) => {
+      if (oldName === newName || newName.trim().length === 0) return;
+      setCurrentText((text) => renameSubheaderInText(text, oldName, newName));
+    },
+    [],
+  );
+
   const applyDiagnosticFix = useCallback(
     (d: LintDiagnostic) => {
       if (d.suggestion === undefined) return;
@@ -444,6 +452,7 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
               field={selected}
               currentText={currentText}
               onChangeChoice={updateChoiceDictation}
+              onRenameSubheader={renameSubheader}
             />
           ) : (
             <p className="td-picklist-empty-body">
@@ -597,10 +606,12 @@ function SelectedFieldView({
   field,
   currentText,
   onChangeChoice,
+  onRenameSubheader,
 }: {
   field: InnerField;
   currentText: string;
   onChangeChoice: (fieldName: string, choiceIdx: number, newValue: string) => void;
+  onRenameSubheader: (oldName: string, newName: string) => void;
 }) {
   const typeLabel = FIELD_TYPE_LABELS[field.type] ?? `Type ${field.type}`;
 
@@ -619,10 +630,19 @@ function SelectedFieldView({
     }));
   }, [field, currentText]);
 
+  const isPicklist = field.type === "3";
+
   return (
     <div className="td-field-detail">
       <div className="td-field-detail-head">
-        <span className="td-field-detail-name">{field.name || "(unnamed)"}</span>
+        {isPicklist ? (
+          <SubheaderNameInput
+            name={field.name}
+            onCommit={(newName) => onRenameSubheader(field.name, newName)}
+          />
+        ) : (
+          <span className="td-field-detail-name">{field.name || "(unnamed)"}</span>
+        )}
         <span className="td-field-detail-type">{typeLabel}</span>
         <span className="td-field-detail-pos">
           @{field.start}+{field.length}
@@ -712,6 +732,71 @@ function SelectedFieldView({
       ) : null}
     </div>
   );
+}
+
+function SubheaderNameInput({
+  name,
+  onCommit,
+}: {
+  name: string;
+  onCommit: (newName: string) => void;
+}) {
+  const [draft, setDraft] = useState(name);
+
+  // If the upstream name changes (e.g. switching to another field), reset.
+  useEffect(() => {
+    setDraft(name);
+  }, [name]);
+
+  const dirty = draft !== name;
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed.length === 0) {
+      setDraft(name); // Picklists must have a subheader name; revert.
+      return;
+    }
+    if (trimmed !== name) onCommit(trimmed);
+  };
+
+  return (
+    <input
+      type="text"
+      className={
+        "td-subheader-input" + (dirty ? " td-subheader-input--dirty" : "")
+      }
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur();
+        } else if (e.key === "Escape") {
+          setDraft(name);
+          e.currentTarget.blur();
+        }
+      }}
+      spellCheck={false}
+      aria-label="Picklist subheader name"
+      title="Subheader label — free-form text that introduces the choice list. Required."
+    />
+  );
+}
+
+/**
+ * Rename a picklist field's subheader in the rendered text by replacing
+ * the first occurrence of `OldName:` with `NewName:`.
+ */
+function renameSubheaderInText(
+  text: string,
+  oldName: string,
+  newName: string,
+): string {
+  if (!oldName) return text;
+  const prefix = `${oldName}:`;
+  const idx = text.indexOf(prefix);
+  if (idx === -1) return text;
+  return text.slice(0, idx) + newName + ":" + text.slice(idx + prefix.length);
 }
 
 /**
