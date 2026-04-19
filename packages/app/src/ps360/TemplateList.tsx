@@ -59,8 +59,7 @@ export function TemplateList() {
 
       {templateFiles.length === 0 ? (
         <p className="tl-empty">
-          No templates loaded. Pick one or more PS360 <code>PortalAutoTextExport</code> XML
-          files.
+          No templates loaded. Pick one or more dictation template XML files.
         </p>
       ) : (
         <>

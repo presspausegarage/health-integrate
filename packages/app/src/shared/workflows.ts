@@ -18,10 +18,10 @@ export interface WorkflowMeta {
 export const WORKFLOWS: readonly WorkflowMeta[] = [
   {
     id: "ps360",
-    label: "PS360 Template Mapper",
-    shortLabel: "PS360",
+    label: "Template Mapper",
+    shortLabel: "Templates",
     group: "radiology",
-    description: "Parse, lint, and normalize PS360 PortalAutoTextExport files.",
+    description: "Parse, lint, and normalize dictation template files.",
   },
   {
     id: "hl7",

@@ -59,7 +59,7 @@ export function PS360Provider({ children }: { children: ReactNode }) {
 
   const loadDataValue = useCallback(async () => {
     try {
-      const pick = await pickXmlFile({ title: "Open DataValue XML" });
+      const pick = await pickXmlFile({ title: "Open configuration XML" });
       if (!pick) return;
       const config = parseDataValue(pick.content);
       setDataValue({ path: pick.path, config });
@@ -70,7 +70,7 @@ export function PS360Provider({ children }: { children: ReactNode }) {
 
   const loadTemplates = useCallback(async () => {
     try {
-      const picks = await pickXmlFiles({ title: "Open PS360 template XML" });
+      const picks = await pickXmlFiles({ title: "Open template XML" });
       if (picks.length === 0) return;
 
       const next: LoadedTemplateFile[] = [];

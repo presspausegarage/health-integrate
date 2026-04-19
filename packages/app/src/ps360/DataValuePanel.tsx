@@ -35,18 +35,19 @@ export function DataValuePanel() {
     return (
       <div className="dv-panel dv-panel--empty">
         <header className="dv-title-row">
-          <h3 className="dv-title">DataValue configuration</h3>
+          <h3 className="dv-title">App Configuration</h3>
         </header>
         <p className="dv-description">
-          Load an integration configuration XML file. Its mapping lists drive
-          diagnostics and completion against your templates.
+          Load the application configuration XML exported from your dictation
+          integration. Its mapping lists drive diagnostics and completion
+          against your templates.
         </p>
         <button
           type="button"
           className="btn btn--primary dv-load-btn"
           onClick={loadDataValue}
         >
-          Load DataValue.xml
+          Load configuration XML
         </button>
       </div>
     );
@@ -70,7 +71,7 @@ export function DataValuePanel() {
           type="button"
           className="btn btn--subtle"
           onClick={clearDataValue}
-          title="Unload this DataValue file"
+          title="Unload this configuration file"
         >
           Unload
         </button>
