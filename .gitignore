@@ -1,0 +1,33 @@
+node_modules/
+dist/
+build/
+out/
+*.log
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# Tauri
+packages/shell/target/
+packages/shell/gen/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/
+
+# Test artifacts
+coverage/
+.vitest-cache/
+
+# User-supplied files (NEVER commit DataValue exports)
+*DataValue*.xml
+!**/test/fixtures/*DataValue*.xml
+*datavalue*.xml
+!**/test/fixtures/*datavalue*.xml
+
+# OS
+desktop.ini

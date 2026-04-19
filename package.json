@@ -1,0 +1,21 @@
+{
+  "name": "ise-toolkit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Radiology informatics desktop toolkit: PS360 template mapper, HL7 viewer, string generator, tool launcher, integrated terminal.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

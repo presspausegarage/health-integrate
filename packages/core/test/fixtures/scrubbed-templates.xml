@@ -1,0 +1,88 @@
+<PortalAutoTextExport>
+  <AutoText>
+    <Name>ref header basic</Name>
+    <Description>ref header basic</Description>
+    <ContentRTF>{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Arial;}}
+{\colortbl ;\red0\green0\blue0;}
+{\*\generator Riched20 10.0.20348}\viewkind4\uc1
+\pard\cf1\f0\fs24 Patient Name: Patient Name\par
+Patient DOB: Patient DOB  Age: Patient Age\par
+Patient MRN: Patient MRN\par
+\par
+EXAM DATE: DisplayDate\par
+}
+ {\xml}&lt;?xml version="1.0" encoding="utf8"?&gt;&lt;autotext version="2" editMode="2"&gt;&lt;fields&gt;&lt;field type="4" start="14" length="12" mergeid="302" mergename=""&gt;&lt;name&gt;Patient Name&lt;/name&gt;&lt;/field&gt;&lt;field type="4" start="40" length="11" mergeid="317" mergename=""&gt;&lt;name&gt;Patient DOB&lt;/name&gt;&lt;/field&gt;&lt;field type="4" start="58" length="11" mergeid="319" mergename=""&gt;&lt;name&gt;Patient Age&lt;/name&gt;&lt;/field&gt;&lt;field type="4" start="83" length="11" mergeid="316" mergename=""&gt;&lt;name&gt;Patient MRN&lt;/name&gt;&lt;/field&gt;&lt;field type="4" start="112" length="11" mergeid="10000" mergename="DisplayDate"&gt;&lt;name&gt;DisplayDate&lt;/name&gt;&lt;/field&gt;&lt;/fields&gt;&lt;links /&gt;&lt;textSource&gt;&lt;range type="4" start="14" length="12" /&gt;&lt;range type="4" start="40" length="11" /&gt;&lt;range type="4" start="58" length="11" /&gt;&lt;range type="4" start="83" length="11" /&gt;&lt;range type="4" start="112" length="11" /&gt;&lt;/textSource&gt;&lt;snippetGroups /&gt;&lt;/autotext&gt;</ContentRTF>
+    <ContentText>Patient Name: Patient Name
+Patient DOB: Patient DOB  Age: Patient Age
+Patient MRN: Patient MRN
+
+EXAM DATE: DisplayDate</ContentText>
+    <AutoTextDefaultTypeID>1</AutoTextDefaultTypeID>
+    <IsPrivate>false</IsPrivate>
+    <CreateDate>2026-01-01T00:00:00.000-00:00</CreateDate>
+    <GUID>00000000-0000-0000-0000-000000000001</GUID>
+    <ParentGUID>00000000-0000-0000-0000-00000000000a</ParentGUID>
+    <AutoTextID>1001</AutoTextID>
+    <OwnerFirstName>Test</OwnerFirstName>
+    <OwnerLastName>User</OwnerLastName>
+    <GroupName>ref</GroupName>
+    <OwnerAccountID>1</OwnerAccountID>
+    <IsDefault>false</IsDefault>
+  </AutoText>
+  <AutoText>
+    <Name>ref results picklist</Name>
+    <ContentRTF>{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Arial;}}
+{\colortbl ;\red178\green34\blue34;\red0\green0\blue0;}
+{\*\generator Riched20 10.0.22621}\viewkind4\uc1
+\pard\cf1\f0\fs24 Results\cf2 :\cf1 Letter\cf2 /Results mailed./Patient will be recalled.\cf1\par
+}
+ {\xml}&lt;?xml version="1.0" encoding="utf8"?&gt;&lt;autotext version="2" editMode="2"&gt;&lt;fields&gt;&lt;field type="3" start="0" length="48"&gt;&lt;name&gt;Results&lt;/name&gt;&lt;defaultvalue&gt;Letter&lt;/defaultvalue&gt;&lt;choices&gt;&lt;choice name="Letter"&gt;The patient has been entered into an automated reminder system.&lt;/choice&gt;&lt;choice name="Results mailed."&gt;Results were mailed to the patient.&lt;/choice&gt;&lt;choice name="Patient will be recalled."&gt;The patient will be recalled for further imaging.&lt;/choice&gt;&lt;/choices&gt;&lt;customproperties&gt;&lt;property&gt;&lt;name&gt;AllCaps&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;property&gt;&lt;name&gt;AllowEmpty&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;property&gt;&lt;name&gt;EnforcePickList&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;/customproperties&gt;&lt;/field&gt;&lt;/fields&gt;&lt;links /&gt;&lt;textSource&gt;&lt;range type="3" start="0" length="7" /&gt;&lt;range type="3" start="8" length="6" /&gt;&lt;/textSource&gt;&lt;snippetGroups /&gt;&lt;/autotext&gt;</ContentRTF>
+    <ContentText>Results:Letter/Results mailed./Patient will be recalled.</ContentText>
+    <AutoTextDefaultTypeID>1</AutoTextDefaultTypeID>
+    <IsPrivate>false</IsPrivate>
+    <CreateDate>2026-01-01T00:00:00.000-00:00</CreateDate>
+    <GUID>00000000-0000-0000-0000-000000000002</GUID>
+    <ParentGUID>00000000-0000-0000-0000-00000000000b</ParentGUID>
+    <AutoTextID>1002</AutoTextID>
+    <OwnerFirstName>Test</OwnerFirstName>
+    <OwnerLastName>User</OwnerLastName>
+    <GroupName>ref</GroupName>
+    <OwnerAccountID>1</OwnerAccountID>
+    <IsDefault>false</IsDefault>
+  </AutoText>
+  <AutoText>
+    <Name>ultrasound biopsy template</Name>
+    <ContentRTF>{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Arial;}}
+{\colortbl ;\red0\green0\blue0;}
+{\*\generator Riched20 10.0.20348}\viewkind4\uc1
+\pard\cf1\f0\fs24 ref header basic\par
+\par
+ACCESSION: Accession Numbers\par
+\par
+IMPRESSION: BI-RADS:0/1/2/3/4/5/6\par
+Impression\par
+}
+ {\xml}&lt;?xml version="1.0" encoding="utf8"?&gt;&lt;autotext version="2" editMode="2"&gt;&lt;fields&gt;&lt;field type="5" start="0" length="16"&gt;&lt;name&gt;ref header basic&lt;/name&gt;&lt;defaultvalue autotextId="1001" autotextName="ref header basic"&gt;Patient Name:
+Patient DOB:      Age:
+Patient MRN:
+
+EXAM DATE:    &lt;/defaultvalue&gt;&lt;customproperties&gt;&lt;property&gt;&lt;name&gt;AllCaps&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;/customproperties&gt;&lt;/field&gt;&lt;field type="4" start="29" length="17" mergeid="502" mergename=""&gt;&lt;name&gt;Accession Numbers&lt;/name&gt;&lt;/field&gt;&lt;field type="3" start="72" length="21"&gt;&lt;name&gt;BI-RADS&lt;/name&gt;&lt;defaultvalue&gt;2&lt;/defaultvalue&gt;&lt;choices&gt;&lt;choice name="0"&gt;BI-RADS category 0, Incomplete.&lt;/choice&gt;&lt;choice name="1"&gt;BI-RADS category 1, Negative.&lt;/choice&gt;&lt;choice name="2"&gt;BI-RADS category 2, Benign.&lt;/choice&gt;&lt;choice name="3"&gt;BI-RADS category 3, Probably Benign.&lt;/choice&gt;&lt;choice name="4"&gt;BI-RADS category 4, Suspicious.&lt;/choice&gt;&lt;choice name="5"&gt;BI-RADS category 5, Highly Suggestive of Malignancy.&lt;/choice&gt;&lt;choice name="6"&gt;BI-RADS category 6, Known Biopsy-Proven Malignancy.&lt;/choice&gt;&lt;/choices&gt;&lt;customproperties&gt;&lt;property&gt;&lt;name&gt;AllCaps&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;property&gt;&lt;name&gt;ImpressionField&lt;/name&gt;&lt;value&gt;True&lt;/value&gt;&lt;/property&gt;&lt;/customproperties&gt;&lt;/field&gt;&lt;field type="1" start="95" length="10"&gt;&lt;name&gt;Impression&lt;/name&gt;&lt;customproperties&gt;&lt;property&gt;&lt;name&gt;AllCaps&lt;/name&gt;&lt;value&gt;False&lt;/value&gt;&lt;/property&gt;&lt;property&gt;&lt;name&gt;AllowEmpty&lt;/name&gt;&lt;value&gt;True&lt;/value&gt;&lt;/property&gt;&lt;/customproperties&gt;&lt;/field&gt;&lt;/fields&gt;&lt;links /&gt;&lt;textSource&gt;&lt;range type="12" start="0" length="16" /&gt;&lt;range type="4" start="29" length="17" /&gt;&lt;range type="3" start="72" length="7" /&gt;&lt;range type="3" start="84" length="1" /&gt;&lt;range type="1" start="95" length="10" /&gt;&lt;/textSource&gt;&lt;snippetGroups /&gt;&lt;/autotext&gt;</ContentRTF>
+    <ContentText>ref header basic
+
+ACCESSION: Accession Numbers
+
+IMPRESSION: BI-RADS:0/1/2/3/4/5/6
+Impression</ContentText>
+    <AutoTextDefaultTypeID>2</AutoTextDefaultTypeID>
+    <IsPrivate>false</IsPrivate>
+    <CreateDate>2026-01-01T00:00:00.000-00:00</CreateDate>
+    <GUID>00000000-0000-0000-0000-000000000003</GUID>
+    <ParentGUID>00000000-0000-0000-0000-00000000000c</ParentGUID>
+    <AutoTextID>1003</AutoTextID>
+    <OwnerFirstName>Test</OwnerFirstName>
+    <OwnerLastName>User</OwnerLastName>
+    <GroupName>Breast</GroupName>
+    <OwnerAccountID>1</OwnerAccountID>
+    <IsDefault>true</IsDefault>
+  </AutoText>
+</PortalAutoTextExport>
