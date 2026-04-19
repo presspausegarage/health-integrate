@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AutoText, InnerField } from "@health-integrate/core";
-import { Editor } from "../shared/monaco.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AutoText, InnerField, LintDiagnostic } from "@health-integrate/core";
+import { lintTemplate } from "@health-integrate/core";
+import { Editor, monaco } from "../shared/monaco.js";
+import type { editor } from "monaco-editor/esm/vs/editor/editor.api";
 import { findAutoText, usePS360 } from "./state.js";
+
+const MARKER_OWNER = "health-integrate";
 
 const FIELD_TYPE_LABELS: Record<string, string> = {
   "1": "Text field",
@@ -37,11 +41,13 @@ export function TemplateDetail() {
 }
 
 function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
+  const { dataValue } = usePS360();
   const fields = autoText.inner.fields;
   const [currentText, setCurrentText] = useState(autoText.contentText);
   const [selectedFieldIdx, setSelectedFieldIdx] = useState<number | null>(
     fields.length > 0 ? 0 : null,
   );
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     setCurrentText(autoText.contentText);
@@ -49,6 +55,48 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
   }, [autoText, fields.length]);
 
   const dirty = currentText !== autoText.contentText;
+
+  const diagnostics = useMemo<LintDiagnostic[]>(() => {
+    if (!dataValue) return [];
+    return lintTemplate(currentText, dataValue.config);
+  }, [currentText, dataValue]);
+
+  // Apply diagnostics as Monaco markers whenever they change.
+  useEffect(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const model = ed.getModel();
+    if (!model) return;
+
+    const markers: editor.IMarkerData[] = diagnostics.map((d) => {
+      const startPos = model.getPositionAt(d.start);
+      const endPos = model.getPositionAt(d.end);
+      return {
+        severity:
+          d.severity === "error"
+            ? monaco.MarkerSeverity.Error
+            : d.severity === "warning"
+              ? monaco.MarkerSeverity.Warning
+              : monaco.MarkerSeverity.Info,
+        startLineNumber: startPos.lineNumber,
+        startColumn: startPos.column,
+        endLineNumber: endPos.lineNumber,
+        endColumn: endPos.column,
+        message: d.message,
+        code: d.code,
+        source: "Health Integrate",
+      };
+    });
+
+    monaco.editor.setModelMarkers(model, MARKER_OWNER, markers);
+  }, [diagnostics]);
+
+  const handleEditorMount = useCallback(
+    (instance: editor.IStandaloneCodeEditor) => {
+      editorRef.current = instance;
+    },
+    [],
+  );
 
   const handleEditorChange = useCallback((value: string | undefined) => {
     if (value !== undefined) setCurrentText(value);
@@ -60,6 +108,16 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
     (fieldName: string, choiceIdx: number, newValue: string) => {
       setCurrentText((text) =>
         replacePicklistChoiceInText(text, fieldName, choiceIdx, newValue),
+      );
+    },
+    [],
+  );
+
+  const applyDiagnosticFix = useCallback(
+    (d: LintDiagnostic) => {
+      if (d.suggestion === undefined) return;
+      setCurrentText(
+        (text) => text.slice(0, d.start) + d.suggestion + text.slice(d.end),
       );
     },
     [],
@@ -86,6 +144,11 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
             <span className="td-tag td-tag--id">#{autoText.autoTextId}</span>
           )}
           <span className="td-tag td-tag--fields">{fields.length} fields</span>
+          {diagnostics.length > 0 && (
+            <span className="td-tag td-tag--lint">
+              {diagnostics.length} {diagnostics.length === 1 ? "issue" : "issues"}
+            </span>
+          )}
         </div>
       </header>
 
@@ -94,6 +157,7 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
           <Editor
             value={currentText}
             onChange={handleEditorChange}
+            onMount={handleEditorMount}
             language="plaintext"
             theme="vs-dark"
             options={{
@@ -109,6 +173,23 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
             }}
           />
         </div>
+        {diagnostics.length > 0 && (
+          <DiagnosticList
+            diagnostics={diagnostics}
+            text={currentText}
+            onApplyFix={applyDiagnosticFix}
+            onJump={(d) => {
+              const ed = editorRef.current;
+              if (!ed) return;
+              const model = ed.getModel();
+              if (!model) return;
+              const pos = model.getPositionAt(d.start);
+              ed.revealPositionInCenter(pos);
+              ed.setPosition(pos);
+              ed.focus();
+            }}
+          />
+        )}
       </div>
 
       <div className="td-picklist">
@@ -160,6 +241,75 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
 function fieldTabLabel(f: InnerField): string {
   if (f.mergename && f.mergename !== "") return f.mergename;
   return f.name || "(unnamed)";
+}
+
+function DiagnosticList({
+  diagnostics,
+  text,
+  onApplyFix,
+  onJump,
+}: {
+  diagnostics: LintDiagnostic[];
+  text: string;
+  onApplyFix: (d: LintDiagnostic) => void;
+  onJump: (d: LintDiagnostic) => void;
+}) {
+  const fixable = diagnostics.filter((d) => d.suggestion !== undefined);
+  const applyAll = () => {
+    // Apply fixes right-to-left so earlier offsets stay valid.
+    const sorted = [...fixable].sort((a, b) => b.start - a.start);
+    for (const d of sorted) onApplyFix(d);
+  };
+
+  return (
+    <div className="td-diag">
+      <div className="td-diag-head">
+        <span className="td-diag-title">
+          {diagnostics.length} {diagnostics.length === 1 ? "issue" : "issues"}
+        </span>
+        {fixable.length > 0 && (
+          <button type="button" className="btn btn--subtle" onClick={applyAll}>
+            Fix all ({fixable.length})
+          </button>
+        )}
+      </div>
+      <ul className="td-diag-list">
+        {diagnostics.map((d, i) => {
+          const found = text.slice(d.start, d.end);
+          return (
+            <li key={i} className={"td-diag-item td-diag-item--" + d.severity}>
+              <button
+                type="button"
+                className="td-diag-jump"
+                onClick={() => onJump(d)}
+                title="Jump to location in editor"
+              >
+                <span className="td-diag-code">{d.code}</span>
+                <span className="td-diag-message">
+                  <code>{found}</code>
+                  {d.suggestion !== undefined && (
+                    <>
+                      {" "}→ <code className="td-diag-suggestion">{d.suggestion}</code>
+                    </>
+                  )}
+                </span>
+              </button>
+              {d.suggestion !== undefined && (
+                <button
+                  type="button"
+                  className="btn btn--subtle td-diag-fix"
+                  onClick={() => onApplyFix(d)}
+                  title={`Replace with "${d.suggestion}"`}
+                >
+                  Fix
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 interface LiveChoice {
