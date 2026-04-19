@@ -51,19 +51,37 @@ export function parsePortalAutoText(xml: string): PortalAutoTextExport {
     textNodeName: "#text",
   });
 
-  const parsed = parser.parse(xml) as {
-    PortalAutoTextExport?: { AutoText?: unknown };
-  };
+  const parsed = parser.parse(xml) as Record<string, unknown>;
 
-  const root = parsed.PortalAutoTextExport;
-  if (!root) {
-    throw new Error("Root element <PortalAutoTextExport> not found");
+  // Tolerate a namespace prefix like `ps:PortalAutoTextExport` by matching
+  // on any key whose local name is PortalAutoTextExport.
+  const rootKey = Object.keys(parsed).find(
+    (k) => stripNamespace(k) === "PortalAutoTextExport",
+  );
+
+  if (!rootKey) {
+    const topKeys = Object.keys(parsed).filter((k) => !k.startsWith("?"));
+    throw new Error(
+      `Root element <PortalAutoTextExport> not found. ` +
+        `Top-level elements present: ${topKeys.length > 0 ? topKeys.join(", ") : "(none)"}. ` +
+        `Expected a PS360 PortalAutoTextExport autotext export file.`,
+    );
   }
 
+  const rootRaw = parsed[rootKey];
+  if (!rootRaw || typeof rootRaw !== "object") {
+    throw new Error("<PortalAutoTextExport> element is empty or not an object");
+  }
+  const root = rootRaw as { AutoText?: unknown };
   const autoTextNodes = toArray(root.AutoText);
   const autoTexts = autoTextNodes.map((n, idx) => parseAutoTextNode(n, idx));
 
   return { autoTexts };
+}
+
+function stripNamespace(tagName: string): string {
+  const colon = tagName.indexOf(":");
+  return colon === -1 ? tagName : tagName.slice(colon + 1);
 }
 
 function parseAutoTextNode(raw: unknown, index: number): AutoText {

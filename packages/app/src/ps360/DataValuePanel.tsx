@@ -148,6 +148,8 @@ function ValueMappingTable({
   items: ValueMappingItem[];
 }) {
   const headers = valueHeaderLabels(domain);
+  const { pendingMappingEdits, setMappingEdit, clearMappingEdit } = usePS360();
+
   return (
     <table className="dv-table">
       <thead>
@@ -157,20 +159,44 @@ function ValueMappingTable({
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
-          <tr key={item.internalGuid}>
-            <td className="dv-table-key" title={item.internalGuid}>
-              {item.displayValue}
-            </td>
-            <td className="dv-table-value">{item.externalValue}</td>
-          </tr>
-        ))}
+        {items.map((item) => {
+          const key = item.internalGuid;
+          const edited = key in pendingMappingEdits;
+          const current = edited
+            ? pendingMappingEdits[key]!
+            : item.externalValue;
+          return (
+            <tr key={key}>
+              <td className="dv-table-key" title={item.internalGuid}>
+                {item.displayValue}
+              </td>
+              <td className="dv-table-value">
+                <input
+                  type="text"
+                  className={
+                    "dv-table-input" + (edited ? " dv-table-input--edited" : "")
+                  }
+                  value={current}
+                  onChange={(e) => setMappingEdit(key, e.target.value)}
+                  onBlur={() => {
+                    if (edited && current === item.externalValue) {
+                      clearMappingEdit(key);
+                    }
+                  }}
+                  spellCheck={false}
+                />
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
 }
 
 function FieldMappingTable({ items }: { items: FieldMapping[] }) {
+  const { pendingMappingEdits, setMappingEdit, clearMappingEdit } = usePS360();
+
   return (
     <table className="dv-table">
       <thead>
@@ -180,18 +206,38 @@ function FieldMappingTable({ items }: { items: FieldMapping[] }) {
         </tr>
       </thead>
       <tbody>
-        {items.map((item, idx) => (
-          <tr key={idx}>
-            <td className="dv-table-key">
-              <div>{item.externalName}</div>
-              <div className="dv-table-sub">{item.externalType}</div>
-            </td>
-            <td className="dv-table-value">
-              <div>{item.internalName}</div>
-              <div className="dv-table-sub">{item.internalType}</div>
-            </td>
-          </tr>
-        ))}
+        {items.map((item, idx) => {
+          const key = `field::${item.externalType}::${item.externalName}`;
+          const edited = key in pendingMappingEdits;
+          const current = edited
+            ? pendingMappingEdits[key]!
+            : item.internalName;
+          return (
+            <tr key={idx}>
+              <td className="dv-table-key">
+                <div>{item.externalName}</div>
+                <div className="dv-table-sub">{item.externalType}</div>
+              </td>
+              <td className="dv-table-value">
+                <input
+                  type="text"
+                  className={
+                    "dv-table-input" + (edited ? " dv-table-input--edited" : "")
+                  }
+                  value={current}
+                  onChange={(e) => setMappingEdit(key, e.target.value)}
+                  onBlur={() => {
+                    if (edited && current === item.internalName) {
+                      clearMappingEdit(key);
+                    }
+                  }}
+                  spellCheck={false}
+                />
+                <div className="dv-table-sub">{item.internalType}</div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

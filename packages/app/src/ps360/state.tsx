@@ -25,12 +25,23 @@ export interface PS360State {
   selectedAutoText: { file: string; name: string } | null;
   error: string | null;
 
+  /**
+   * Pending in-memory edits to DataValue mapping values. Keyed by
+   * "<internalGuid>" (value mappings) or "<externalName>::<externalType>"
+   * (field mappings). Edits don't mutate the loaded config; they're
+   * overlaid at render time and used during normalize/smoke-test as
+   * canonical values. Cleared when the DataValue is unloaded.
+   */
+  pendingMappingEdits: Record<string, string>;
+
   loadDataValue: () => Promise<void>;
   loadTemplates: () => Promise<void>;
   selectAutoText: (filePath: string, autoTextName: string) => void;
   clearError: () => void;
   clearDataValue: () => void;
   removeTemplateFile: (path: string) => void;
+  setMappingEdit: (key: string, value: string) => void;
+  clearMappingEdit: (key: string) => void;
 }
 
 const PS360Context = createContext<PS360State | null>(null);
@@ -42,6 +53,9 @@ export function PS360Provider({ children }: { children: ReactNode }) {
     { file: string; name: string } | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingMappingEdits, setPendingMappingEdits] = useState<
+    Record<string, string>
+  >({});
 
   const loadDataValue = useCallback(async () => {
     try {
@@ -76,7 +90,23 @@ export function PS360Provider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setError(null), []);
 
-  const clearDataValue = useCallback(() => setDataValue(null), []);
+  const clearDataValue = useCallback(() => {
+    setDataValue(null);
+    setPendingMappingEdits({});
+  }, []);
+
+  const setMappingEdit = useCallback((key: string, value: string) => {
+    setPendingMappingEdits((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const clearMappingEdit = useCallback((key: string) => {
+    setPendingMappingEdits((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
 
   const removeTemplateFile = useCallback(
     (path: string) => {
@@ -94,24 +124,30 @@ export function PS360Provider({ children }: { children: ReactNode }) {
       templateFiles,
       selectedAutoText,
       error,
+      pendingMappingEdits,
       loadDataValue,
       loadTemplates,
       selectAutoText,
       clearError,
       clearDataValue,
       removeTemplateFile,
+      setMappingEdit,
+      clearMappingEdit,
     }),
     [
       dataValue,
       templateFiles,
       selectedAutoText,
       error,
+      pendingMappingEdits,
       loadDataValue,
       loadTemplates,
       selectAutoText,
       clearError,
       clearDataValue,
       removeTemplateFile,
+      setMappingEdit,
+      clearMappingEdit,
     ],
   );
 
