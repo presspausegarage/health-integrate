@@ -84,6 +84,10 @@ export function lintTemplate(
     );
   }
 
+  if (!disabled.has("statement/recommendation")) {
+    out.push(...lintRecommendationStatements(text, dataValue));
+  }
+
   out.sort((a, b) => a.start - b.start);
   return out;
 }
@@ -176,6 +180,79 @@ export function inferDomainForField(fieldName: string): MappingDomain | null {
   return null;
 }
 
+/**
+ * Laterality tokens that may appear at the end of a recommendation choice.
+ * Matched case-insensitively; not validated against the Laterality mapping
+ * list because per the workflow they're applied after the recommendation
+ * match.
+ */
+const LATERALITY_PATTERN = /^(.*?)(\s+)(left|right|bilateral)$/i;
+
+/**
+ * Timeframe tokens that may appear at the end of a recommendation choice,
+ * tried longest-first. Both the full spoken form ("in 6 months") and the
+ * abbreviated template-choice form ("6 month") are accepted.
+ */
+const TIMEFRAME_PATTERNS: readonly RegExp[] = [
+  /^(.*?)(\s+)(in \d+-\d+ years?)$/i,
+  /^(.*?)(\s+)(in \d+ months?)$/i,
+  /^(.*?)(\s+)(\d+-\d+ years?)$/i,
+  /^(.*?)(\s+)(\d+ months?)$/i,
+  /^(.*?)(\s+)(at age \d+)$/i,
+  /^(.*?)(\s+)(age \d+)$/i,
+];
+
+interface Peel {
+  core: string;
+  suffix: string;
+}
+
+function peelTrailingLaterality(s: string): Peel | null {
+  const m = s.match(LATERALITY_PATTERN);
+  if (!m) return null;
+  return { core: m[1] ?? "", suffix: (m[2] ?? "") + (m[3] ?? "") };
+}
+
+function peelTrailingTimeframe(s: string): Peel | null {
+  for (const p of TIMEFRAME_PATTERNS) {
+    const m = s.match(p);
+    if (m) {
+      return { core: m[1] ?? "", suffix: (m[2] ?? "") + (m[3] ?? "") };
+    }
+  }
+  return null;
+}
+
+/**
+ * Recursively strip trailing laterality and timeframe tokens from a
+ * recommendation choice. Order doesn't matter because we retry after every
+ * successful peel, so both "Rec Right in 6 months" and "Rec in 6 months Right"
+ * reduce to the same core.
+ */
+export function peelRecommendationSuffixes(choice: string): Peel {
+  let core = choice;
+  let suffix = "";
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const lat = peelTrailingLaterality(core);
+    if (lat) {
+      suffix = lat.suffix + suffix;
+      core = lat.core;
+      changed = true;
+      continue;
+    }
+    const time = peelTrailingTimeframe(core);
+    if (time) {
+      suffix = time.suffix + suffix;
+      core = time.core;
+      changed = true;
+      continue;
+    }
+  }
+  return { core, suffix };
+}
+
 interface ChoiceLintFlags {
   caseDisabled: boolean;
   unknownDisabled: boolean;
@@ -227,10 +304,11 @@ function lintChoices(
       cursor = choiceEnd + 1; // +1 for the '/' separator
 
       if (choice.length === 0) continue;
-      if (exact.has(choice)) continue;
 
-      const caseExact = byLower.get(choice.toLowerCase());
-      if (caseExact !== undefined) {
+      const evaluation = evaluateChoice(choice, domain, exact, byLower);
+      if (evaluation.status === "ok") continue;
+
+      if (evaluation.status === "case") {
         if (flags.caseDisabled) continue;
         diagnostics.push({
           severity: "warning",
@@ -240,8 +318,8 @@ function lintChoices(
           message:
             `Picklist choice "${choice}" in "${field.name}" does not match ` +
             `the App Configuration's ${domain} list case-sensitively. ` +
-            `Expected "${caseExact}".`,
-          suggestion: caseExact,
+            `Expected "${evaluation.suggestion}".`,
+          suggestion: evaluation.suggestion,
         });
       } else {
         if (flags.unknownDisabled) continue;
@@ -260,4 +338,128 @@ function lintChoices(
   }
 
   return diagnostics;
+}
+
+/**
+ * Smoke-test a fixed-text recommendation statement that appears in the
+ * static template body (not a picklist field). Example:
+ *
+ *   RECOMMENDATION: Diagnostic Mammogram and Ultrasound Right in 6 months.
+ *
+ * The trailing period is optional; internal spacing is not. The content
+ * after the header is parsed as `<recommendation> [laterality] [timeframe]`
+ * and validated against the Recommendation mapping list.
+ */
+function lintRecommendationStatements(
+  text: string,
+  dataValue: DataValueConfig,
+): LintDiagnostic[] {
+  const recommendations = dataValue.mappings.Recommendation ?? [];
+  if (recommendations.length === 0) return [];
+
+  const exact = new Set<string>();
+  const byLower = new Map<string, string>();
+  for (const r of recommendations) {
+    if (r.externalValue && r.externalValue.length > 0) {
+      exact.add(r.externalValue);
+      byLower.set(r.externalValue.toLowerCase(), r.externalValue);
+    }
+  }
+  if (exact.size === 0) return [];
+
+  const diagnostics: LintDiagnostic[] = [];
+
+  // Match lines that start with "RECOMMENDATION:" followed by whitespace and
+  // non-empty content. We only fire on the exact-case header here; the
+  // header/case rule flags the header-level case issue independently.
+  const re = /^(RECOMMENDATION:)([ \t]+)([^\n]+?)(\.?)[ \t]*$/gm;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const header = m[1] ?? "";
+    const gap = m[2] ?? "";
+    const content = m[3] ?? "";
+    if (content.length === 0) continue;
+
+    const contentStart = m.index + header.length + gap.length;
+    const peeled = peelRecommendationSuffixes(content);
+    if (peeled.core.length === 0) continue;
+
+    // Location of just the recommendation-core slice within the content.
+    const coreStart = contentStart;
+    const coreEnd = coreStart + peeled.core.length;
+
+    if (exact.has(peeled.core)) continue;
+
+    const coreExact = byLower.get(peeled.core.toLowerCase());
+    if (coreExact !== undefined) {
+      diagnostics.push({
+        severity: "warning",
+        code: "statement/recommendation-case",
+        start: coreStart,
+        end: coreEnd,
+        message:
+          `Recommendation "${peeled.core}" does not match the App Configuration ` +
+          `case-sensitively. Expected "${coreExact}".`,
+        suggestion: coreExact,
+      });
+    } else {
+      diagnostics.push({
+        severity: "warning",
+        code: "statement/recommendation-unknown",
+        start: coreStart,
+        end: coreEnd,
+        message:
+          `Recommendation "${peeled.core}" is not in the App Configuration's ` +
+          `Recommendation list. The dictation integration will not recognize ` +
+          `this spoken form.`,
+      });
+    }
+  }
+
+  return diagnostics;
+}
+
+type ChoiceEvaluation =
+  | { status: "ok" }
+  | { status: "case"; suggestion: string }
+  | { status: "unknown" };
+
+/**
+ * Decide whether a single picklist choice name is valid against its
+ * domain's mapping list. For the Recommendation domain, choices may carry
+ * trailing laterality and/or timeframe suffixes that are not part of the
+ * mapping entry — we peel those off before matching.
+ */
+function evaluateChoice(
+  choice: string,
+  domain: MappingDomain,
+  exact: ReadonlySet<string>,
+  byLower: ReadonlyMap<string, string>,
+): ChoiceEvaluation {
+  // Direct exact match on the full choice.
+  if (exact.has(choice)) return { status: "ok" };
+
+  if (domain === "Recommendation") {
+    const peeled = peelRecommendationSuffixes(choice);
+    // Core matches exactly.
+    if (peeled.core.length > 0 && exact.has(peeled.core)) {
+      return { status: "ok" };
+    }
+    // Core matches case-insensitively — suggest fixed core + original suffix.
+    if (peeled.core.length > 0) {
+      const coreExact = byLower.get(peeled.core.toLowerCase());
+      if (coreExact !== undefined) {
+        return { status: "case", suggestion: coreExact + peeled.suffix };
+      }
+    }
+  }
+
+  // Case-insensitive match on the full choice (covers non-Recommendation
+  // domains or Recommendation choices with no suffixes).
+  const full = byLower.get(choice.toLowerCase());
+  if (full !== undefined) {
+    return { status: "case", suggestion: full };
+  }
+
+  return { status: "unknown" };
 }

@@ -252,3 +252,204 @@ describe("lintTemplate choice rules", () => {
     expect(diagsOnlyUnknown.map((d) => d.code)).toEqual(["choice/unknown"]);
   });
 });
+
+describe("lintTemplate Recommendation compound grammar", () => {
+  it("accepts a recommendation with a trailing laterality", () => {
+    // "Ultrasound-guided core biopsy bilateral" reduces to the core
+    // "Ultrasound-guided core biopsy" which is in the config.
+    const text = "Recommendation:Ultrasound-guided core biopsy bilateral\n";
+    const config = configWithRecommendations(["Ultrasound-guided core biopsy"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts a recommendation with a trailing timeframe", () => {
+    const text = "Recommendation:Screening mammogram 6 month\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts a recommendation with both laterality and timeframe", () => {
+    const text = "Recommendation:Diagnostic mammogram right 6 month\n";
+    const config = configWithRecommendations(["Diagnostic mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts `in X months` spoken timeframe form", () => {
+    const text = "Recommendation:Diagnostic mammogram in 6 months\n";
+    const config = configWithRecommendations(["Diagnostic mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts `in X-Y years` timeframe form", () => {
+    const text = "Recommendation:Screening mammogram in 1-2 years\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts `at age X` timeframe form", () => {
+    const text = "Recommendation:Screening mammogram at age 40\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+
+  it("flags case mismatch on the core with original suffix preserved", () => {
+    const text = "Recommendation:diagnostic mammogram right 6 month\n";
+    const config = configWithRecommendations(["Diagnostic mammogram"]);
+    const diags = lintTemplate(text, config, {
+      fields: [picklistField("Recommendation")],
+    });
+    expect(diags).toHaveLength(1);
+    expect(diags[0]!.code).toBe("choice/case");
+    expect(diags[0]!.suggestion).toBe("Diagnostic mammogram right 6 month");
+  });
+
+  it("flags unknown core even with valid laterality + timeframe", () => {
+    const text = "Recommendation:Totally unknown rec bilateral in 6 months\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    const diags = lintTemplate(text, config, {
+      fields: [picklistField("Recommendation")],
+    });
+    expect(diags).toHaveLength(1);
+    expect(diags[0]!.code).toBe("choice/unknown");
+  });
+
+  it("handles laterality + timeframe in either order", () => {
+    const text = "Recommendation:Screening mammogram in 6 months right\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        fields: [picklistField("Recommendation")],
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("lintTemplate statement/recommendation rule (full-line smoke test)", () => {
+  it("accepts a valid 4-part recommendation statement", () => {
+    const text =
+      "RECOMMENDATION: Diagnostic Mammogram and Ultrasound Right in 6 months.\n";
+    const config = configWithRecommendations([
+      "Diagnostic Mammogram and Ultrasound",
+    ]);
+    expect(lintTemplate(text, config)).toEqual([]);
+  });
+
+  it("accepts a statement with no laterality and no timeframe (immediate)", () => {
+    const text = "RECOMMENDATION: Diagnostic Mammogram and Ultrasound.\n";
+    const config = configWithRecommendations([
+      "Diagnostic Mammogram and Ultrasound",
+    ]);
+    expect(lintTemplate(text, config)).toEqual([]);
+  });
+
+  it("accepts a statement with no trailing period", () => {
+    const text =
+      "RECOMMENDATION: Diagnostic Mammogram and Ultrasound Right in 6 months";
+    const config = configWithRecommendations([
+      "Diagnostic Mammogram and Ultrasound",
+    ]);
+    expect(lintTemplate(text, config)).toEqual([]);
+  });
+
+  it("flags the recommendation core when case-mismatched", () => {
+    const text =
+      "RECOMMENDATION: diagnostic mammogram and ultrasound Right in 6 months.\n";
+    const config = configWithRecommendations([
+      "Diagnostic Mammogram and Ultrasound",
+    ]);
+    const diags = lintTemplate(text, config);
+    expect(diags.map((d) => d.code)).toContain("statement/recommendation-case");
+    const stmtDiag = diags.find(
+      (d) => d.code === "statement/recommendation-case",
+    );
+    expect(stmtDiag?.suggestion).toBe("Diagnostic Mammogram and Ultrasound");
+    expect(text.slice(stmtDiag!.start, stmtDiag!.end)).toBe(
+      "diagnostic mammogram and ultrasound",
+    );
+  });
+
+  it("flags when the recommendation core is not in the config", () => {
+    const text = "RECOMMENDATION: Some Unknown Procedure Right in 6 months.\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    const diags = lintTemplate(text, config);
+    expect(diags.map((d) => d.code)).toContain(
+      "statement/recommendation-unknown",
+    );
+  });
+
+  it("accepts `in 1-2 years` and `at age 40` timeframe forms", () => {
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate("RECOMMENDATION: Screening mammogram in 1-2 years.\n", config),
+    ).toEqual([]);
+    expect(
+      lintTemplate("RECOMMENDATION: Screening mammogram at age 40.\n", config),
+    ).toEqual([]);
+  });
+
+  it("doesn't double-flag the header when statement rule fires", () => {
+    // If the header is properly cased, only the statement-level rule fires.
+    const text = "RECOMMENDATION: unknown rec.\n";
+    const config: DataValueConfig = {
+      mappings: {
+        ReportHeaders: [
+          {
+            internalGuid: "00000000-0000-0000-0000-000000000001",
+            displayValue: "RECOMMENDATION",
+            defaultValue: "RECOMMENDATION:",
+            code: "",
+            externalValue: "RECOMMENDATION:",
+          },
+        ],
+        Recommendation: [
+          {
+            internalGuid: "10000000-0000-0000-0000-000000000001",
+            displayValue: "Screening mammogram",
+            defaultValue: "Screening mammogram",
+            code: "",
+            externalValue: "Screening mammogram",
+          },
+        ],
+      },
+      fieldMappings: {},
+    };
+    const diags = lintTemplate(text, config);
+    expect(diags.map((d) => d.code)).toEqual([
+      "statement/recommendation-unknown",
+    ]);
+  });
+
+  it("respects the disable flag", () => {
+    const text = "RECOMMENDATION: Totally unknown thing.\n";
+    const config = configWithRecommendations(["Screening mammogram"]);
+    expect(
+      lintTemplate(text, config, {
+        disable: new Set(["statement/recommendation"]),
+      }),
+    ).toEqual([]);
+  });
+});
