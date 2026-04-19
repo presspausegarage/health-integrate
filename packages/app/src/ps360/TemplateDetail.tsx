@@ -7,6 +7,82 @@ import { findAutoText, usePS360 } from "./state.js";
 
 const MARKER_OWNER = "health-integrate";
 
+interface PicklistRegion {
+  fieldIdx: number;
+  fieldName: string;
+  /** Title range: spans the "FieldName:" prefix. */
+  titleStart: number;
+  titleEnd: number;
+  /** Choices range: spans the slash-separated choices after the colon. */
+  choicesStart: number;
+  choicesEnd: number;
+  choices: PicklistChoice[];
+}
+
+interface PicklistChoice {
+  /** Name the doctor says (the XML choice `name` attribute, same-positional). */
+  astKey?: string;
+  /** Dictation-text value shown in the editor, between adjacent `/` separators. */
+  text: string;
+  /** Character offset in the editor's current text. */
+  start: number;
+  /** Exclusive end offset. */
+  end: number;
+}
+
+function findPicklistRegions(
+  text: string,
+  fields: readonly InnerField[],
+): PicklistRegion[] {
+  const regions: PicklistRegion[] = [];
+  for (let idx = 0; idx < fields.length; idx++) {
+    const f = fields[idx]!;
+    if (f.type !== "3" || !f.name) continue;
+
+    const prefix = `${f.name}:`;
+    const prefixStart = text.indexOf(prefix);
+    if (prefixStart === -1) continue;
+    const choicesStart = prefixStart + prefix.length;
+    const newline = text.indexOf("\n", choicesStart);
+    const choicesEnd = newline === -1 ? text.length : newline;
+    const segment = text.slice(choicesStart, choicesEnd);
+
+    const astChoices = f.choices ?? [];
+    const parts = segment.split("/");
+    const choices: PicklistChoice[] = [];
+    let cursor = choicesStart;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i] ?? "";
+      const cStart = cursor;
+      const cEnd = cStart + part.length;
+      cursor = cEnd + 1;
+      choices.push({
+        astKey: astChoices[i]?.name,
+        text: part,
+        start: cStart,
+        end: cEnd,
+      });
+    }
+
+    regions.push({
+      fieldIdx: idx,
+      fieldName: f.name,
+      titleStart: prefixStart,
+      titleEnd: prefixStart + f.name.length,
+      choicesStart,
+      choicesEnd,
+      choices,
+    });
+  }
+  return regions;
+}
+
+interface PickerState {
+  region: PicklistRegion;
+  /** Anchor DOM rect (relative to viewport) from the editor's click. */
+  anchor: { top: number; left: number };
+}
+
 const FIELD_TYPE_LABELS: Record<string, string> = {
   "1": "Text field",
   "3": "Pick list",
@@ -48,11 +124,91 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
     fields.length > 0 ? 0 : null,
   );
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null);
+  const [picker, setPicker] = useState<PickerState | null>(null);
 
   useEffect(() => {
     setCurrentText(autoText.contentText);
     setSelectedFieldIdx(fields.length > 0 ? 0 : null);
+    setPicker(null);
   }, [autoText, fields.length]);
+
+  const picklistRegions = useMemo(
+    () => findPicklistRegions(currentText, fields),
+    [currentText, fields],
+  );
+
+  // Apply Monaco decorations to style picklist regions as bracketed tags.
+  useEffect(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const model = ed.getModel();
+    if (!model) return;
+
+    const newDecorations: editor.IModelDeltaDecoration[] = [];
+    for (const r of picklistRegions) {
+      const titleStart = model.getPositionAt(r.titleStart);
+      const titleEnd = model.getPositionAt(r.titleEnd);
+      const choicesStart = model.getPositionAt(r.choicesStart);
+      const choicesEnd = model.getPositionAt(r.choicesEnd);
+
+      const choicesText = r.choices
+        .map((c) => `- \`${c.astKey ?? c.text}\` — ${c.text}`)
+        .join("\n");
+      const hover = {
+        value:
+          `**${r.fieldName}** _(pick list)_\n\n` +
+          `Click the brackets to pick a value.\n\n` +
+          choicesText,
+      };
+
+      // Title: FieldName with a leading "["
+      newDecorations.push({
+        range: new monaco.Range(
+          titleStart.lineNumber,
+          titleStart.column,
+          titleEnd.lineNumber,
+          titleEnd.column,
+        ),
+        options: {
+          inlineClassName: "hi-picklist-title",
+          beforeContentClassName: "hi-picklist-bracket-open",
+          hoverMessage: hover,
+          stickiness:
+            monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        },
+      });
+
+      // Colon + choices: dim the raw choice text, end with trailing "]"
+      newDecorations.push({
+        range: new monaco.Range(
+          titleEnd.lineNumber,
+          titleEnd.column,
+          choicesEnd.lineNumber,
+          choicesEnd.column,
+        ),
+        options: {
+          inlineClassName: "hi-picklist-choices",
+          afterContentClassName: "hi-picklist-bracket-close",
+          hoverMessage: hover,
+          stickiness:
+            monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        },
+      });
+
+      // Invisible full-region marker used by the click handler to map the
+      // click back to the picklist region. Stored via the decoration's
+      // `className` is not accessible at click time; we instead re-check
+      // the offset against `picklistRegions` on mousedown.
+      void choicesStart;
+    }
+
+    if (decorationsRef.current) {
+      decorationsRef.current.set(newDecorations);
+    } else {
+      decorationsRef.current = ed.createDecorationsCollection(newDecorations);
+    }
+  }, [picklistRegions]);
 
   const dirty = currentText !== autoText.contentText;
 
@@ -94,6 +250,60 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
   const handleEditorMount = useCallback(
     (instance: editor.IStandaloneCodeEditor) => {
       editorRef.current = instance;
+
+      instance.onMouseDown((e) => {
+        const position = e.target.position;
+        if (!position) return;
+        const model = instance.getModel();
+        if (!model) return;
+        const offset = model.getOffsetAt(position);
+        const region = picklistRegionsRef.current.find(
+          (r) => offset >= r.titleStart && offset <= r.choicesEnd,
+        );
+        if (!region) {
+          setPicker(null);
+          return;
+        }
+        // Prevent the default click that would place the caret and instead
+        // open our pick list. The editor keeps focus for now; user hits
+        // Escape to dismiss.
+        const domEvent = e.event.browserEvent as MouseEvent | undefined;
+        const pageX = domEvent?.clientX ?? 0;
+        const pageY = domEvent?.clientY ?? 0;
+        setPicker({
+          region,
+          anchor: { top: pageY + 8, left: pageX },
+        });
+      });
+
+      instance.onDidBlurEditorWidget(() => {
+        // Defer — allow the picker's onclick to run before we dismiss on blur.
+        setTimeout(() => setPicker(null), 150);
+      });
+    },
+    [],
+  );
+
+  // Keep a ref to the regions so the onMouseDown handler (bound once) can
+  // see the latest list without rebinding.
+  const picklistRegionsRef = useRef<PicklistRegion[]>([]);
+  useEffect(() => {
+    picklistRegionsRef.current = picklistRegions;
+  }, [picklistRegions]);
+
+  const applyChoice = useCallback(
+    (region: PicklistRegion, choice: PicklistChoice) => {
+      // Replace the entire picklist region (title + colon + choices) with
+      // just the selected choice's text — the template now reads as though
+      // that choice has been dictated in.
+      setCurrentText((text) => {
+        return (
+          text.slice(0, region.titleStart) +
+          choice.text +
+          text.slice(region.choicesEnd)
+        );
+      });
+      setPicker(null);
     },
     [],
   );
@@ -192,6 +402,14 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
         )}
       </div>
 
+      {picker && (
+        <PicklistPicker
+          state={picker}
+          onSelect={(choice) => applyChoice(picker.region, choice)}
+          onDismiss={() => setPicker(null)}
+        />
+      )}
+
       <div className="td-picklist">
         <div className="td-picklist-tabs">
           {fields.length === 0 ? (
@@ -241,6 +459,62 @@ function TemplateDetailInner({ autoText }: { autoText: AutoText }) {
 function fieldTabLabel(f: InnerField): string {
   if (f.mergename && f.mergename !== "") return f.mergename;
   return f.name || "(unnamed)";
+}
+
+function PicklistPicker({
+  state,
+  onSelect,
+  onDismiss,
+}: {
+  state: PickerState;
+  onSelect: (choice: PicklistChoice) => void;
+  onDismiss: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onDismiss();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onDismiss]);
+
+  const { region } = state;
+
+  return (
+    <>
+      <div className="picker-backdrop" onClick={onDismiss} />
+      <div
+        className="picker-menu"
+        style={{
+          top: state.anchor.top,
+          left: state.anchor.left,
+        }}
+        role="listbox"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="picker-menu-head">
+          <span className="picker-menu-title">{region.fieldName}</span>
+          <span className="picker-menu-count">{region.choices.length}</span>
+        </div>
+        <ul className="picker-menu-list">
+          {region.choices.map((choice, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                className="picker-menu-item"
+                onClick={() => onSelect(choice)}
+              >
+                {choice.astKey && choice.astKey !== choice.text && (
+                  <span className="picker-menu-key">{choice.astKey}</span>
+                )}
+                <span className="picker-menu-text">{choice.text}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
 }
 
 function DiagnosticList({
