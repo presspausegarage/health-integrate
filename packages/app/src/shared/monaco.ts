@@ -14,9 +14,9 @@
 // Monarch-defined languages we register. Language-specific workers (json,
 // ts, css) are not needed for our workflows.
 
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import * as monaco from "monaco-editor/editor/editor.api";
 import { loader } from "@monaco-editor/react";
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import editorWorker from "monaco-editor/editor/editor.worker?worker";
 
 (self as unknown as { MonacoEnvironment?: monaco.Environment }).MonacoEnvironment = {
   getWorker(_moduleId: string, _label: string): Worker {
